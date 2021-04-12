@@ -30,6 +30,7 @@ nnoremap <PageUp> <C-I>
 
 let g:ale_fixers = {'python': ['black', 'isort']}
 let g:ale_linters = {'python': ['pyright']}
+let g:ale_completion_enabled = 1
 let g:sneak#label = 1
 let g:tagbar_left = 1
 let g:tagbar_width = max([25, winwidth(0) / 5])
