@@ -14,6 +14,8 @@ set incsearch
 set hlsearch
 set ignorecase
 set smartcase
+set autoindent
+set smartindent
 colorscheme peachpuff
 tnoremap <Esc> <C-\><C-n>
 
@@ -28,8 +30,8 @@ nnoremap <leader>x :ALEFix<CR>
 nnoremap <PageDown> <C-O>
 nnoremap <PageUp> <C-I>
 
-let g:ale_fixers = {'python': ['black', 'isort']}
-let g:ale_linters = {'python': ['pyright']}
+let g:ale_fixers = {'python': ['black', 'isort'], 'markdown': ['prettier']}
+let g:ale_linters = {'python': ['pyright'], 'bash': ['shellcheck']}
 let g:ale_completion_enabled = 1
 let g:sneak#label = 1
 let g:tagbar_left = 1
