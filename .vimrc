@@ -16,24 +16,26 @@ set ignorecase
 set smartcase
 set autoindent
 set smartindent
+set clipboard+=unnamedplus
 colorscheme peachpuff
-tnoremap <Esc> <C-\><C-n>
 
 let mapleader=","
 nnoremap ,, ,
-nnoremap <leader>p :NERDTreeToggle<CR>
-nnoremap <leader>f :Files<CR>
 nnoremap <leader>w :w<CR> :!ctags -R .<CR><CR>
-nnoremap <leader>b :Tagbar<CR>
-nnoremap <leader>t :Tags<CR>
-nnoremap <leader>x :ALEFix<CR>
+nnoremap <leader>sn :NERDTreeToggle<CR>
+nnoremap <leader>st :Tagbar<CR>
+nnoremap <leader>ff :Files<CR>
+nnoremap <leader>ft :Tags<CR>
+nnoremap <leader>fl :Lines<CR>
+nnoremap <leader>rf :ALEFix<CR>
+nnoremap <leader>rn :ALERename
 nnoremap <PageDown> <C-O>
 nnoremap <PageUp> <C-I>
+nnoremap gd :ALEGoToDefinition<CR>
 
 let g:ale_fixers = {'python': ['black', 'isort'], 'markdown': ['prettier']}
 let g:ale_linters = {'python': ['pyright'], 'bash': ['shellcheck']}
 let g:ale_completion_enabled = 1
 let g:sneak#label = 1
 let g:tagbar_left = 1
-let g:tagbar_width = max([25, winwidth(0) / 5])
 let g:tagbar_foldlevel = 0
