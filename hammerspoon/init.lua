@@ -1,15 +1,6 @@
 --First enable Hammerspoon in security/privacy/accessibility
 --https://github.com/Hammerspoon/hammerspoon/issues/237#issuecomment-476320469
 
-
-hs.hotkey.bind({"cmd", "ctrl"}, "j", function()
-  hs.application.launchOrFocus("Safari")
-end)
-
-hs.hotkey.bind({"cmd", "ctrl"}, "k", function()
-  hs.application.launchOrFocus("Terminal")
-end)
-
 hs.hotkey.bind({"ctrl"}, "Y", function()
   local win = hs.window.focusedWindow()
   local f = win:frame()

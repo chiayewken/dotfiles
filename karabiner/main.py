@@ -133,17 +133,19 @@ def main(
         EasyMap(a="comma", b="up_arrow", mod_a=[ctrl]),
         EasyMap(a="period", b="right_arrow", mod_a=[ctrl]),
         # Vim
-        EasyMap(a="h", b="tab", mod_a=[ctrl], mod_b=[shift, ctrl]),
         EasyMap(a="j", b="d", mod_a=[ctrl], mod_b=[ctrl]),
         EasyMap(a="k", b="u", mod_a=[ctrl], mod_b=[ctrl]),
+        # Browser
+        EasyMap(a="h", b="tab", mod_a=[ctrl], mod_b=[shift, ctrl]),
         EasyMap(a="l", b="tab", mod_a=[ctrl], mod_b=[ctrl]),
+        EasyMap(a="u", b="page_down", mod_a=[ctrl], mod_b=["any"]),
+        EasyMap(a="i", b="page_up", mod_a=[ctrl], mod_b=["any"]),
         # Special Keys
         EasyMap(a="s", b="escape", mod_a=[ctrl], mod_b_optional=["any"]),
         EasyMap(a="d", b="return_or_enter", mod_a=[ctrl], mod_b_optional=["any"]),
         EasyMap(a="f", b="delete_or_backspace", mod_a=[ctrl], mod_b_optional=["any"]),
-        EasyMap(a="g", b="tab", mod_a=[ctrl], mod_b_optional=["any"]),
-        EasyMap(a="u", b="page_down", mod_a=[ctrl], mod_b=["any"]),
-        EasyMap(a="i", b="page_up", mod_a=[ctrl], mod_b=["any"]),
+        EasyMap(a="g", b="tab", mod_a=[ctrl], mod_b_optional=[shift]),
+        EasyMap(a="t", b="tab", mod_a=[ctrl], mod_b=[cmd], mod_b_optional=[shift]),
     ]
     rules.extend([m.to_manipulator() for m in maps])
 
