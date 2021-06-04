@@ -1,0 +1,16 @@
+a,b,mod_a,mod_b
+cmd_right,shift,,
+opt_right,ctrl,,
+h,left,['opt'],
+j,down,['opt'],
+k,up,['opt'],
+l,right,['opt'],
+h,tab,['cmd'],"['ctrl','shift']"
+j,page_down,['cmd'],
+k,page_up,['cmd'],
+l,tab,['cmd'],['ctrl']
+semicolon,l,['cmd'],['cmd']
+h,vol_down,['ctrl'],
+j,bright_down,['ctrl'],
+k,bright_up,['ctrl'],
+l,vol_up,['ctrl'],

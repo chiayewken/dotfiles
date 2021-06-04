@@ -1,9 +1,101 @@
 import json
 import os
+from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
 
+import pandas as pd
+from fire import Fire
 from pydantic import BaseModel
+
+
+class Key(str, Enum):
+    # Row 0
+    escape: str = "escape"
+    bright_down: str = "f14"
+    bright_up: str = "f15"
+    mute: str = "mute"
+    vol_down: str = "volume_decrement"
+    vol_up: str = "volume_increment"
+    # Row 1
+    tilde: str = "grave_accent_and_tilde"
+    one: str = "1"
+    two: str = "2"
+    three: str = "3"
+    four: str = "4"
+    five: str = "5"
+    six: str = "6"
+    seven: str = "7"
+    eight: str = "8"
+    nine: str = "9"
+    zero: str = "0"
+    hyphen: str = "hyphen"
+    equal: str = "equal_sign"
+    delete: str = "delete_or_backspace"
+    # Row 2
+    tab: str = "tab"
+    q: str = "q"
+    w: str = "w"
+    e: str = "e"
+    r: str = "r"
+    t: str = "t"
+    y: str = "y"
+    u: str = "u"
+    i: str = "i"
+    o: str = "o"
+    p: str = "p"
+    bracket_open: str = "open_bracket"
+    bracket_close: str = "close_bracket"
+    backslash: str = "backslash"
+    # Row 3
+    caps: str = "caps_lock"
+    a: str = "a"
+    s: str = "s"
+    d: str = "d"
+    f: str = "f"
+    g: str = "g"
+    h: str = "h"
+    j: str = "j"
+    k: str = "k"
+    l: str = "l"
+    semicolon: str = "semicolon"
+    quote: str = "quote"
+    enter: str = "return_or_enter"
+    # Row 4
+    shift: str = "left_shift"
+    z: str = "z"
+    x: str = "x"
+    c: str = "c"
+    v: str = "v"
+    b: str = "b"
+    n: str = "n"
+    m: str = "m"
+    comma: str = "comma"
+    period: str = "period"
+    slash: str = "slash"
+    shift_right: str = "right_shift"
+    # Row 5
+    fn: str = "fn"
+    ctrl: str = "left_control"
+    opt: str = "left_option"
+    cmd: str = "left_command"
+    space: str = "spacebar"
+    cmd_right: str = "right_command"
+    opt_right: str = "right_option"
+    # Arrows
+    left: str = "left_arrow"
+    right: str = "right_arrow"
+    up: str = "up_arrow"
+    down: str = "down_arrow"
+    page_up: str = "page_up"
+    page_down: str = "page_down"
+    home: str = "home"
+    end: str = "end"
+
+    @classmethod
+    def as_dict(cls):
+        member: Key
+        return {name: member for name, member in cls.__members__.items()}
 
 
 class Modifiers(BaseModel):
@@ -106,52 +198,14 @@ class EasyMap(BaseModel):
         )
 
 
-def main(
-    name="layer",
-    path_out="~/.config/karabiner/assets/complex_modifications/layer.json",
-):
+def write_maps(name: str, maps: List[EasyMap], path_out: Path):
     path_out = os.path.expanduser(path_out)
     Path(path_out).parent.mkdir(exist_ok=True, parents=True)
-    cmd = "right_command"
-    ctrl = "right_control"
-    shift = "left_shift"
-    option = "left_option"
-
-    rules = [
-        Manipulator(
-            from_key=Event(key_code="spacebar", modifiers=Modifiers(optional=["any"])),
-            to=Event(key_code=shift),
-            to_if_alone=Event(key_code="spacebar"),
-        ),
-    ]
-
-    maps = [
-        EasyMap(a=cmd, b=ctrl),  # Affects downstream remaps
-        # Arrow keys
-        EasyMap(a="n", b="left_arrow", mod_a=[ctrl]),
-        EasyMap(a="m", b="down_arrow", mod_a=[ctrl]),
-        EasyMap(a="comma", b="up_arrow", mod_a=[ctrl]),
-        EasyMap(a="period", b="right_arrow", mod_a=[ctrl]),
-        # Vim
-        EasyMap(a="j", b="d", mod_a=[ctrl], mod_b=[ctrl]),
-        EasyMap(a="k", b="u", mod_a=[ctrl], mod_b=[ctrl]),
-        # Browser
-        EasyMap(a="h", b="tab", mod_a=[ctrl], mod_b=[shift, ctrl]),
-        EasyMap(a="l", b="tab", mod_a=[ctrl], mod_b=[ctrl]),
-        EasyMap(a="u", b="page_down", mod_a=[ctrl], mod_b=["any"]),
-        EasyMap(a="i", b="page_up", mod_a=[ctrl], mod_b=["any"]),
-        # Special Keys
-        EasyMap(a="s", b="escape", mod_a=[ctrl], mod_b_optional=["any"]),
-        EasyMap(a="d", b="return_or_enter", mod_a=[ctrl], mod_b_optional=["any"]),
-        EasyMap(a="f", b="delete_or_backspace", mod_a=[ctrl], mod_b_optional=["any"]),
-        EasyMap(a="g", b="tab", mod_a=[ctrl], mod_b_optional=[shift]),
-        EasyMap(a="t", b="tab", mod_a=[ctrl], mod_b=[cmd], mod_b_optional=[shift]),
-    ]
-    rules.extend([m.to_manipulator() for m in maps])
-
+    rules = [m.to_manipulator() for m in maps]
     for m in rules:
         assert m.is_valid
     config = Config(title=name, rules=[Rule(manipulators=rules, description=name)])
+
     with open(path_out, "w") as f:
         raw = config.dict(by_alias=True)
         raw = remove_none(raw)
@@ -159,7 +213,43 @@ def main(
         f.write(json.dumps(raw, indent=2))
 
 
+class RawMap(BaseModel):
+    a: str
+    b: str
+    mod_a: str
+    mod_b: str
+
+    @classmethod
+    def parse_key(cls, text: str) -> Key:
+        return Key.as_dict()[text]
+
+    @classmethod
+    def parse_modifiers(cls, text: str) -> Optional[List[str]]:
+        if len(text) > 0:
+            mods = eval(text)
+            return [cls.parse_key(text) for text in mods]
+
+    def to_easy_map(self) -> EasyMap:
+        return EasyMap(
+            a=self.parse_key(self.a),
+            b=self.parse_key(self.b),
+            mod_a=self.parse_modifiers(self.mod_a),
+            mod_b=self.parse_modifiers(self.mod_b),
+        )
+
+
+def main(
+    path_in: str = "remap_0.csv",
+    name: str = "remap_0",
+    path_out: str = "~/.config/karabiner/assets/complex_modifications/layer.json",
+):
+    df = pd.read_csv(path_in)
+    df = df.fillna(value="")
+    maps = [RawMap(**r).to_easy_map() for r in df.to_dict(orient="records")]
+    write_maps(name, maps, Path(path_out))
+
+
 if __name__ == "__main__":
     test_manipulator()
     test_remove_none()
-    main()
+    Fire(main)
