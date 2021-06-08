@@ -245,6 +245,8 @@ def main(
 ):
     df = pd.read_csv(path_in)
     df = df.fillna(value="")
+    df.columns = [x.strip() for x in df.columns]
+    df = df.applymap(lambda x: x.strip())
     maps = [RawMap(**r).to_easy_map() for r in df.to_dict(orient="records")]
     write_maps(name, maps, Path(path_out))
 
