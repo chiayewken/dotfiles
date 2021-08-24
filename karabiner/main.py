@@ -117,6 +117,7 @@ class Event(BaseModel):
     modifiers: Optional[Union[Modifiers, List[str]]]
     simultaneous: Optional[List]
     set_variable: Optional[Variable]
+    shell_command: Optional[str]
 
     @property
     def is_valid(self) -> bool:
@@ -155,16 +156,16 @@ def test_manipulator():
     print(m.json(indent=2, exclude_none=True, by_alias=True))
 
 
-def remove_none(old: dict):
+def remove_none_values(old: dict):
     if not isinstance(old, dict):
         return old
 
     new = {}
     for k, v in old.items():
         if isinstance(v, dict):
-            new[k] = remove_none(v)
+            new[k] = remove_none_values(v)
         elif isinstance(v, list):
-            new[k] = [remove_none(x) for x in v]
+            new[k] = [remove_none_values(x) for x in v]
         elif v is not None:
             new[k] = v
     return new
@@ -173,44 +174,7 @@ def remove_none(old: dict):
 def test_remove_none():
     d = dict(one=None, two=1, three=dict(four=None, five=5))
     print(d)
-    print(remove_none(d))
-
-
-class EasyMap(BaseModel):
-    a: str
-    b: str
-    mod_a: Optional[List[str]]
-    mod_b: Optional[List[str]]
-    mod_b_optional: Optional[List[str]]
-
-    def to_manipulator(self) -> Manipulator:
-        return Manipulator(
-            from_key=Event(
-                key_code=self.a,
-                modifiers=(
-                    None
-                    if self.mod_a is None
-                    else Modifiers(mandatory=self.mod_a, optional=self.mod_b_optional)
-                    # else Modifiers(mandatory=self.mod_a, optional=["any"])
-                ),
-            ),
-            to=Event(key_code=self.b, modifiers=self.mod_b),
-        )
-
-
-def write_maps(name: str, maps: List[EasyMap], path_out: Path):
-    path_out = os.path.expanduser(path_out)
-    Path(path_out).parent.mkdir(exist_ok=True, parents=True)
-    rules = [m.to_manipulator() for m in maps]
-    for m in rules:
-        assert m.is_valid
-    config = Config(title=name, rules=[Rule(manipulators=rules, description=name)])
-
-    with open(path_out, "w") as f:
-        raw = config.dict(by_alias=True)
-        raw = remove_none(raw)
-        print(raw)
-        f.write(json.dumps(raw, indent=2))
+    print(remove_none_values(d))
 
 
 class RawMap(BaseModel):
@@ -220,8 +184,8 @@ class RawMap(BaseModel):
     mod_b: str
 
     @classmethod
-    def parse_key(cls, text: str) -> Key:
-        return Key.as_dict()[text]
+    def parse_key(cls, text: str) -> Optional[Key]:
+        return Key.as_dict().get(text)
 
     @classmethod
     def parse_modifiers(cls, text: str) -> Optional[List[str]]:
@@ -229,25 +193,68 @@ class RawMap(BaseModel):
             mods = eval(text)
             return [cls.parse_key(text) for text in mods]
 
-    def to_easy_map(self) -> EasyMap:
-        return EasyMap(
-            a=self.parse_key(self.a),
-            b=self.parse_key(self.b),
-            mod_a=self.parse_modifiers(self.mod_a),
-            mod_b=self.parse_modifiers(self.mod_b),
+    def as_text(self) -> str:
+        a = self.parse_key(self.a)
+        b = self.parse_key(self.b)
+        mod_a = self.parse_modifiers(self.mod_a) or []
+        mod_b = self.parse_modifiers(self.mod_b) or []
+        command = self.b if b is None else None
+
+        left = " + ".join(mod_a + [a])
+        right = " + ".join(mod_b + [b or command])
+        return f"{left} -> {right}"
+
+    def to_manipulator(self) -> Manipulator:
+        a = self.parse_key(self.a)
+        b = self.parse_key(self.b)
+        mod_a = self.parse_modifiers(self.mod_a)
+        mod_b = self.parse_modifiers(self.mod_b)
+        command = self.b if b is None else None
+
+        return Manipulator(
+            from_key=Event(
+                key_code=a,
+                modifiers=(
+                    None
+                    if mod_a is None
+                    else Modifiers(mandatory=mod_a, optional=["any"])
+                ),
+            ),
+            to=Event(key_code=b, modifiers=mod_b, shell_command=command),
         )
 
 
+def write_maps(name: str, maps: List[RawMap], path_out: Path):
+    path_out = os.path.expanduser(path_out)
+    Path(path_out).parent.mkdir(exist_ok=True, parents=True)
+    rules = [m.to_manipulator() for m in maps]
+    for m in rules:
+        assert m.is_valid
+    config = Config(title=name, rules=[Rule(manipulators=rules, description=name)])
+
+    with open(path_out, "w") as f:
+        raw = config.dict(by_alias=True)
+        raw = remove_none_values(raw)
+        f.write(json.dumps(raw, indent=2))
+    print(dict(path_out=path_out))
+
+
 def main(
-    path_in: str = "remap_0.csv",
-    name: str = "remap_0",
+    *paths_in: str,
+    name: str = "remap",
     path_out: str = "~/.config/karabiner/assets/complex_modifications/layer.json",
 ):
-    df = pd.read_csv(path_in)
-    df = df.fillna(value="")
-    df.columns = [x.strip() for x in df.columns]
-    df = df.applymap(lambda x: x.strip())
-    maps = [RawMap(**r).to_easy_map() for r in df.to_dict(orient="records")]
+    maps = []
+    for p in paths_in:
+        df = pd.read_csv(p)
+        df = df.fillna(value="")
+        df.columns = [x.strip() for x in df.columns]
+        df = df.applymap(lambda x: x.strip())
+        for r in df.to_dict(orient="records"):
+            m = RawMap(**r)
+            print(m.as_text())
+            maps.append(m)
+
     write_maps(name, maps, Path(path_out))
 
 
