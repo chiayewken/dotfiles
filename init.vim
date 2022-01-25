@@ -32,6 +32,7 @@ nnoremap <SPACE> <Nop>
 let mapleader=" "
 nnoremap <leader>q :q<CR>
 nnoremap <leader>s :w<CR> :!ctags **/*.py *.py<CR><CR>
+nnoremap <leader>b :e#<CR>
 nnoremap <leader>ov :e $MYVIMRC<CR>
 nnoremap <leader>ot :TagbarToggle<CR>
 nnoremap <leader>rv :w<CR>:source $MYVIMRC<CR>

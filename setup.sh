@@ -2,7 +2,8 @@
 set -e
 
 # Bash config
-cp bashrc ~/my_bashrc
+rm -rf ~/my_bashrc
+ln -s "$PWD"/bashrc ~/my_bashrc
 echo "source ~/my_bashrc" >> ~/.bashrc
 
 # Tmux config
@@ -28,6 +29,3 @@ cp nvim.appimage ~
 cd ~
 chmod u+x ~/nvim.appimage
 ./nvim.appimage --appimage-extract
-
-# Code checking
-# npm install -g pyright
