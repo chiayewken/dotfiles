@@ -26,23 +26,23 @@ autocmd BufReadPost *
 
 nnoremap <SPACE> <Nop>
 let mapleader=" "
-nnoremap <leader>q :q<CR>
-nnoremap <leader>s :w<CR> :!ctags **/*.py *.py<CR><CR>
-nnoremap <leader>j :e#<CR>
-nnoremap <leader>v :e $MYVIMRC<CR>
-nnoremap <leader>V :w<CR>:source %<CR>
-nnoremap <leader>g :Git<CR>
-nnoremap <leader>f :GFiles<CR>
-nnoremap <leader>F :Files<CR>
+nnoremap <leader><Esc> :q<CR>
+nnoremap <leader><Tab> :e#<CR>
 nnoremap <leader>b :Buffers<CR>
 nnoremap <leader>c :Command<CR>
-nnoremap <leader>t :Tags<CR>
-nnoremap <leader>l :Lines<CR>
 nnoremap <leader>e :ALENextWrap<CR>
-nnoremap <leader>E :ALEPreviousWrap<CR>
-nnoremap <leader>r :ALERename<CR>
-nnoremap <leader>R :ALEFindReferences<CR>
+nnoremap <leader>f :GFiles<CR>
+nnoremap <leader>g :Git<CR>
 nnoremap <leader>h :ALEHover<CR>
+nnoremap <leader>l :Lines<CR>
+nnoremap <leader>m :BLines<CR>
+nnoremap <leader>r :ALERename<CR>
+nnoremap <leader>s :w<CR> :!ctags **/*.py *.py<CR><CR>
+nnoremap <leader>t :Tags<CR>
+nnoremap <leader>u :BTags<CR>
+nnoremap <leader>v :e $MYVIMRC<CR>
+nnoremap <leader>w :ALEFindReferences<CR>
+nnoremap <leader>z :w<CR> :source %<CR>
 nnoremap gd :ALEGoToDefinition<CR>
 
 let g:ale_fixers = {'python': ['black', 'isort'], 'yaml': ['prettier'], 'markdown': ['prettier'], 'json': ['prettier'], 'sh': ['shfmt']}
