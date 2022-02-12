@@ -1,4 +1,4 @@
-alias tmux="TERM=xterm-256color tmux"
+alias tm="TERM=xterm-256color tmux"
 alias p="python -m pdb -c continue"
 alias v="~/squashfs-root/usr/bin/nvim"
 alias gs="git status"
