@@ -26,7 +26,6 @@ autocmd BufReadPost *
 
 nnoremap <SPACE> <Nop>
 let mapleader=" "
-nnoremap <leader><Esc> :q<CR>
 nnoremap <leader><Tab> :e#<CR>
 nnoremap <leader>b :Buffers<CR>
 nnoremap <leader>c :Command<CR>
@@ -36,6 +35,7 @@ nnoremap <leader>g :Git<CR>
 nnoremap <leader>h :ALEHover<CR>
 nnoremap <leader>l :Lines<CR>
 nnoremap <leader>m :BLines<CR>
+nnoremap <leader>q :q<CR>
 nnoremap <leader>r :ALERename<CR>
 nnoremap <leader>s :w<CR> :!ctags **/*.py *.py<CR><CR>
 nnoremap <leader>t :Tags<CR>
