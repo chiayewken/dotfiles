@@ -7,7 +7,6 @@ dependencies:
   - isort=5.10.1
   - nodejs=16.13.0
   - prettier=2.4.1
-  - pylint=2.12.2
   - shellcheck=0.8.0
   - tmux=3.1
   - universal-ctags=5.9.20220116.0
