@@ -37,7 +37,7 @@ nnoremap <leader>l :Lines<CR>
 nnoremap <leader>m :BLines<CR>
 nnoremap <leader>q :q<CR>
 nnoremap <leader>r :ALERename<CR>
-nnoremap <leader>s :w<CR> :!ctags **/*.py *.py<CR><CR>
+nnoremap <leader>s :w<CR> :!ctags */*/*.py */*.py *.py<CR><CR>
 nnoremap <leader>t :Tags<CR>
 nnoremap <leader>u :BTags<CR>
 nnoremap <leader>v :e $MYVIMRC<CR>
