@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import shutil
@@ -23,6 +24,18 @@ def copy_path(path_in: str, path_out: str):
             shutil.copytree(path_in, path_out)
         else:
             shutil.copyfile(path_in, path_out)
+
+
+def copy_if_changed(path_in: str, path_out: str):
+    with open(path_in) as f:
+        hash_a = hashlib.md5(f.read().encode()).hexdigest()
+    if Path(path_out).exists():
+        with open(path_out) as f:
+            hash_b = hashlib.md5(f.read().encode()).hexdigest()
+    else:
+        hash_b = ""
+    if hash_a != hash_b:
+        copy_path(path_in, path_out)
 
 
 def delete_path(path: str):
@@ -118,6 +131,11 @@ class GitRepo(BaseModel):
             remote.push()
             print(dict(push=sorted(remote.urls)))
 
+    def pull_all(self):
+        repo = Repo(self.path)
+        remote = repo.remote(self.remote_name)
+        remote.pull()
+
 
 def test_repo(folder: str = "../CodeDrive"):
     repo = GitRepo(path=folder)
@@ -166,8 +184,33 @@ class Uploader(BaseModel):
             observer.join()
 
 
+class Downloader(BaseModel):
+    path_config: str
+
+    def init(self):
+        config = SyncConfig.load(self.path_config)
+        config.path_in, config.path_out = config.path_out, config.path_in
+        for pattern in config.file_patterns:
+            for path in Path(config.path_in).glob(pattern):
+                path_out = convert_path(str(path), config.path_in, config.path_out)
+                copy_if_changed(str(path), path_out)
+
+    def run(self):
+        config = SyncConfig.load(self.path_config)
+        repo = GitRepo(path=config.path_out)
+
+        for _ in tqdm(range(int(1e6))):
+            time.sleep(config.update_interval)
+            repo.pull_all()
+            self.init()
+
+
 def upload(path: str):
     Uploader(path_config=path).run()
+
+
+def download(path: str):
+    Downloader(path_config=path).run()
 
 
 if __name__ == "__main__":
