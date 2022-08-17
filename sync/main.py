@@ -27,11 +27,11 @@ def copy_path(path_in: str, path_out: str):
 
 
 def copy_if_changed(path_in: str, path_out: str):
-    with open(path_in) as f:
-        hash_a = hashlib.md5(f.read().encode()).hexdigest()
+    with open(path_in, "rb") as f:
+        hash_a = hashlib.md5(f.read()).hexdigest()
     if Path(path_out).exists():
-        with open(path_out) as f:
-            hash_b = hashlib.md5(f.read().encode()).hexdigest()
+        with open(path_out, "rb") as f:
+            hash_b = hashlib.md5(f.read()).hexdigest()
     else:
         hash_b = ""
     if hash_a != hash_b:
@@ -201,7 +201,10 @@ class Downloader(BaseModel):
 
         for _ in tqdm(range(int(1e6))):
             time.sleep(config.update_interval)
-            repo.pull_all()
+            try:
+                repo.pull_all()
+            except git.exc.GitCommandError as e:
+                print(e)
             self.init()
 
 
