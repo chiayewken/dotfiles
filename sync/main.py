@@ -7,11 +7,27 @@ from pathlib import Path
 from typing import List
 
 from fire import Fire
-from git import Repo
 from pydantic import BaseModel
 from tqdm import tqdm
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+
+class ShellOutput(BaseModel):
+    text: str
+    error: str
+    is_success: bool
+
+
+def run_shell(command: str) -> ShellOutput:
+    import subprocess
+
+    process = subprocess.run(command.split(), capture_output=True)
+    return ShellOutput(
+        text=process.stdout.decode(),
+        error=process.stderr.decode(),
+        is_success=process.returncode == 0,
+    )
 
 
 def copy_path(path_in: str, path_out: str):
@@ -115,26 +131,41 @@ class GitRepo(BaseModel):
     path: str
     remote_name: str = "origin"
 
+    def run(self, command: str, strict: bool = True) -> str:
+        path = Path(self.path).resolve(strict=True)
+        output = run_shell(f"git -C {path} {command}")
+        if strict:
+            assert output.is_success
+        return output.text
+
+    def get_remote(self) -> str:
+        return self.run("remote get-url origin")
+
+    def get_remote_head(self) -> str:
+        url = self.get_remote()
+        output = run_shell(f"git ls-remote {url} HEAD")
+        assert output.is_success
+        return output.text.split()[0].strip()
+
+    def get_head(self) -> str:
+        return self.run("rev-parse HEAD").strip()
+
     def clear(self):
         for path in sorted(Path(self.path).glob("*")):
             if path not in [Path(self.path, ".git"), Path(self.path, "README.md")]:
                 delete_path(str(path))
 
     def push_all(self, commit_message: str = "New Commit"):
-        repo = Repo(self.path)
-        repo.git.add("--all")
-        if repo.head.commit.diff():
-            for diff in repo.head.commit.diff():
-                print(dict(diff=(diff.a_mode, diff.a_path, diff.b_mode, diff.b_path)))
-            repo.git.commit(f"-m {commit_message}")
-            remote = repo.remote(self.remote_name)
-            remote.push()
-            print(dict(push=sorted(remote.urls)))
+        self.run("add --all")
+        if len(self.run("diff HEAD")) > 0:
+            self.run("commit -m {commit_message}")
+            self.run("push")
 
     def pull_all(self):
-        repo = Repo(self.path)
-        remote = repo.remote(self.remote_name)
-        remote.pull()
+        self.run("pull")
+
+    def check_remote_changes(self) -> bool:
+        return self.get_remote_head() != self.get_head()
 
 
 def test_repo(folder: str = "../CodeDrive"):
@@ -200,12 +231,11 @@ class Downloader(BaseModel):
         repo = GitRepo(path=config.path_out)
 
         for _ in tqdm(range(int(1e6))):
-            time.sleep(config.update_interval)
-            try:
+            if repo.check_remote_changes():
                 repo.pull_all()
-            except git.exc.GitCommandError as e:
-                print(e)
-            self.init()
+                self.init()
+            else:
+                time.sleep(config.update_interval)
 
 
 def upload(path: str):
