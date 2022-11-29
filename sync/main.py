@@ -209,7 +209,10 @@ class Uploader(BaseModel):
         try:
             for _ in tqdm(range(int(1e6))):
                 time.sleep(config.update_interval)
-                repo.push_all()
+                try:
+                    repo.push_all()
+                except AssertionError as e:
+                    print(e)
         finally:
             observer.stop()
             observer.join()
@@ -231,11 +234,14 @@ class Downloader(BaseModel):
         repo = GitRepo(path=config.path_out)
 
         for _ in tqdm(range(int(1e6))):
-            if repo.check_remote_changes():
-                repo.pull_all()
-                self.init()
-            else:
-                time.sleep(config.update_interval)
+            try:
+                if repo.check_remote_changes():
+                    repo.pull_all()
+                    self.init()
+                else:
+                    time.sleep(config.update_interval)
+            except AssertionError as e:
+                print(e)
 
 
 def upload(path: str):
