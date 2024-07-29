@@ -1,0 +1,13 @@
+{
+  "path_in": "../Work",
+  "path_out": "../CodeDrive",
+  "update_interval": 1,
+  "file_patterns": [
+    "**/*.py",
+    "**/*.sh",
+    "*/*.txt",
+    "*/env*.yml",
+    "**/*.yaml",
+    "**/*.tsv"
+  ]
+}
